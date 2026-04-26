@@ -1,0 +1,32 @@
+behavior_tree:
+  name: PICK_PLACE_CASE_1
+  approach_distance: 0.05
+  approach_direction: [0.0, 0.0, -1.0]
+  goal_tolerances: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+script:
+  end_effector : centric_gripper_tcp_link
+  planning_group: manipulator_centric
+  gripper_cmd_action_name: /centric_gripper_controller/gripper_cmd
+  arm_joint_names: ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5','joint_6']
+  allowed_touch_links: ['centric_claw3_link', 'centric_claw3_slave1_link', 'centric_claw3_slave2_link']
+
+scene:
+  file_path: /home/oguz/sfb_jazzy_msc/src/sfb_qa_cell_configuration/workspace_definitions/optimized_locations_1.yaml
+
+PickAndMove:
+  object_id: part_1
+  pick_frame_id: part_1/pick
+  pre_grasp_frame: part_1/pick
+  post_grasp_frame: part_1/pregrasp_pick
+
+MoveAndPlace:
+  object_id: part_1
+  place_frame_id: desk_place_point_1
+  preplace_frame: desk_preplace_point_1
+  postplace_frame: desk_preplace_point_1
+
+TaskFlow:
+- SpawnScene
+- Pick
+- Place

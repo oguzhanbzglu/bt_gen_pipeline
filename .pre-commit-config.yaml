@@ -1,0 +1,16 @@
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+    -   id: trailing-whitespace
+        name: Remove Trailing Whitespaces
+        description: This hook trims trailing whitespace from all files.
+    -   id: end-of-file-fixer
+        name: Fix End of Files
+        description: Ensures that a file is either empty, or ends with one newline.
+    -   id: check-yaml
+        name: Validate YAML
+        description: Checks YAML files for parseable syntax (great for your BT configs).
+    -   id: check-xml
+        name: Validate XML
+        description: Checks XML files for parseable syntax (perfect for your BT trees).
