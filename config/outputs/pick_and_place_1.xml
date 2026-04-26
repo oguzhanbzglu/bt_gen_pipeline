@@ -1,0 +1,458 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4">
+  <BehaviorTree ID="MainPick">
+    <Sequence>
+      <Script code="gripper_tcp:=end_effector; &#10;gripper_cmd_action_name:=gripper_cmd_action_name; &#10;allowed_touch_links:=allowed_touch_links; &#10;arm_joint_names:=default_arm_joint_names; &#10;pg_arm:=planning_group"/>
+      <SubTree ID="PickAndMove"
+               object_id="{object_id}"
+               pick_frame_id="{pick_frame_id}"
+               postgrasp_frame="{postgrasp_frame}"
+               pregrasp_frame="{pregrasp_frame}"
+               _autoremap="true"/>
+    </Sequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="MainPlace">
+    <Sequence>
+      <Script code="gripper_tcp:=end_effector; &#10;gripper_cmd_action_name:=gripper_cmd_action_name; &#10;allowed_touch_links:=allowed_touch_links; &#10;arm_joint_names:=default_arm_joint_names; &#10;pg_arm:=planning_group"/>
+      <SubTree ID="MoveAndPlace"
+               object_id="{object_id}"
+               place_frame_id="{place_frame_id}"
+               postplace_frame="{postplace_frame}"
+               preplace_frame="{preplace_frame}"
+               _autoremap="true"/>
+    </Sequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="MoveAndPlace">
+    <Sequence>
+      <ReadCurrentJointState joint_names_filter="{arm_joint_names}"
+                             joint_names="{joint_names_initial}"
+                             joint_positions="{joint_positions_initial}"/>
+      <RetryUntilSuccessful num_attempts="10">
+        <Fallback>
+          <SubTree ID="PlacingSequence"
+                   _autoremap="true"/>
+          <Sequence>
+            <ReachPreGraspOmpl object_id="{object_id}"
+                               end_effector_link="{gripper_tcp}"
+                               pick_frame_id="{preplace_frame}"
+                               pick_position_xyz="[0.0, 0.0, 0.0]"
+                               pick_rotation_quat="[0.0, 0.0, 0.0, 1.0]"
+                               pick_approach_direction="[0.0, 0.0, 0.0]"
+                               pick_approach_distance="0.1"
+                               planning_group="{pg_arm}"
+                               controller_names=""
+                               velocity_scaling_factor="1.0"
+                               use_joint_constraint="False"
+                               use_joint_target="True"
+                               joint_names="{joint_names_initial}"
+                               joint_states="{joint_positions_initial}"
+                               goal_tolerances="[0.02, 0.02, 0.02, 0.05, 0.05, 0.05]"
+                               constraint_tolerances_above=""
+                               constraint_tolerances_below=""
+                               acceleration_scaling_factor="1.0"/>
+            <SubTree ID="PlacingSequence"
+                     _autoremap="true"/>
+          </Sequence>
+        </Fallback>
+      </RetryUntilSuccessful>
+      <Release object_id="{object_id}"
+               gripper_cmd_action_name="{gripper_cmd_action_name}"
+               place_frame_id="{place_frame_id}"
+               parent_object_id_after_release="{@parent_object_id_after_release}"
+               joint_states=""
+               disable_scene_handling="False"/>
+      <RetryUntilSuccessful num_attempts="10">
+        <Switch2 case_1="{gripper_tcp}"
+                 case_2="{postgrasp_frame}"
+                 variable="{postgrasp_frame}">
+          <MoveGraspLin object_id="{object_id}"
+                        pick_allowed_touch_objects="{allowed_touch_links}"
+                        end_effector_link="{gripper_tcp}"
+                        pick_frame_id="{gripper_tcp}"
+                        pick_position_xyz="[0.0, 0.0, -0.1]"
+                        pick_rotation_quat="[0.0, 0.0, 0.0, 1.0]"
+                        planning_group="{pg_arm}"
+                        controller_names=""
+                        velocity_scaling_factor="1.0"
+                        use_joint_constraint="False"
+                        joint_names=""
+                        goal_tolerances="[0.05, 0.05, 0.05, 0.05, 0.05, 0.05]"
+                        constraint_tolerances_above=""
+                        constraint_tolerances_below=""
+                        acceleration_scaling_factor="0.01"
+                        blend_radius="0.0"
+                        add_to_blending_queue="False"/>
+          <MoveGraspLin object_id="{object_id}"
+                        pick_allowed_touch_objects="{allowed_touch_links}"
+                        end_effector_link="{gripper_tcp}"
+                        pick_frame_id="{postplace_frame}"
+                        pick_position_xyz="[0.0, 0.0, 0.0]"
+                        pick_rotation_quat="[0.0, 0.0, 0.0, 1.0]"
+                        planning_group="{pg_arm}"
+                        controller_names=""
+                        velocity_scaling_factor="1.0"
+                        use_joint_constraint="False"
+                        joint_names=""
+                        goal_tolerances="[0.05, 0.05, 0.05, 0.05, 0.05, 0.05]"
+                        constraint_tolerances_above=""
+                        constraint_tolerances_below=""
+                        acceleration_scaling_factor="0.01"
+                        blend_radius="0.0"
+                        add_to_blending_queue="False"/>
+          <ReachPreGraspPtp object_id="{object_id}"
+                            end_effector_link="{gripper_tcp}"
+                            pick_frame_id="{gripper_tcp}"
+                            pick_position_xyz="[0.0, 0.0, 0.0]"
+                            pick_rotation_quat="[0.0, 0.0, 0.0, 1.0]"
+                            pick_approach_direction="[0.0, 0.0, -1.0]"
+                            pick_approach_distance="0.1"
+                            planning_group="{pg_arm}"
+                            controller_names=""
+                            velocity_scaling_factor="1.0"
+                            use_joint_constraint="false"
+                            joint_names=""
+                            goal_tolerances="[0.05, 0.05, 0.05, 0.05, 0.05, 0.05]"
+                            constraint_tolerances_above=""
+                            constraint_tolerances_below=""
+                            acceleration_scaling_factor="1.0"
+                            blend_radius="0.0"
+                            add_to_blending_queue="False"/>
+        </Switch2>
+      </RetryUntilSuccessful>
+    </Sequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="PICK_AND_PLACE_1">
+    <Sequence name="root">
+      <Script code="end_effector:=&quot;centric_gripper_tcp_link&quot;;&#10;planning_group:=&quot;manipulator_centric&quot;;&#10;gripper_cmd_action_name:=&quot;/centric_gripper_controller/gripper_cmd&quot;;&#10;default_arm_joint_names:=&quot;[&apos;joint_1&apos;,&apos;joint_2&apos;,&apos;joint_3&apos;,&apos;joint_4&apos;,&apos;joint_5&apos;,&apos;joint_6&apos;]&quot;;&#10;allowed_touch_links:=&quot;[&apos;centric_claw3_link&apos;,&apos;centric_claw3_slave1_link&apos;,&apos;centric_claw3_slave2_link&apos;]&quot;"/>
+      <SubTree ID="SpawnObjects"
+               _autoremap="true"/>
+      <SubTree ID="MainPick"
+               object_id="part_1"
+               pick_frame_id="part_1/pick_position"
+               postgrasp_frame="part_1/pregrasp_pick_position"
+               pregrasp_frame="part_1/pregrasp_pick_position"
+               _autoremap="true"/>
+      <SubTree ID="MainPlace"
+               object_id="part_1"
+               place_frame_id="table/place_position"
+               postplace_frame="table/postplace_position"
+               preplace_frame="table/postplace_position"
+               _autoremap="true"/>
+    </Sequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="PickAndMove">
+    <Sequence>
+      <Release object_id="{object_id}"
+               gripper_cmd_action_name="{gripper_cmd_action_name}"
+               place_frame_id="{@place_frame_id}"
+               parent_object_id_after_release="{@parent_object_id_after_release}"
+               joint_states=""
+               disable_scene_handling="False"/>
+      <RetryUntilSuccessful num_attempts="-1">
+        <ReadCurrentJointState joint_names_filter="{arm_joint_names}"
+                               joint_names="{joint_names_initial}"
+                               joint_positions="{joint_positions_initial}"/>
+      </RetryUntilSuccessful>
+      <RetryUntilSuccessful num_attempts="10">
+        <Fallback>
+          <SubTree ID="PickingSequence"
+                   _autoremap="true"/>
+          <Sequence>
+            <ReachPreGraspOmpl object_id="{object_id}"
+                               end_effector_link="{gripper_tcp}"
+                               pick_frame_id="{pregrasp_frame}"
+                               pick_position_xyz="[0.0, 0.0, 0.0]"
+                               pick_rotation_quat="[0.0, 0.0, 0.0, 1.0]"
+                               pick_approach_direction="[0.0, 0.0, 0.0]"
+                               pick_approach_distance="0.1"
+                               planning_group="{pg_arm}"
+                               controller_names=""
+                               velocity_scaling_factor="1.0"
+                               use_joint_constraint="False"
+                               use_joint_target="True"
+                               joint_names="{joint_names_initial}"
+                               joint_states="{joint_positions_initial}"
+                               goal_tolerances="[0.02, 0.02, 0.02, 0.05, 0.05, 0.05]"
+                               constraint_tolerances_above=""
+                               constraint_tolerances_below=""
+                               acceleration_scaling_factor="1.0"/>
+            <SubTree ID="PickingSequence"
+                     _autoremap="true"/>
+          </Sequence>
+        </Fallback>
+      </RetryUntilSuccessful>
+      <Grasp object_id="{object_id}"
+             end_effector_link="{gripper_tcp}"
+             gripper_cmd_action_name="{gripper_cmd_action_name}"
+             pick_allowed_touch_objects="{allowed_touch_links}"
+             joint_states=""
+             disable_scene_handling="False"/>
+      <RetryUntilSuccessful num_attempts="10">
+        <Switch2 case_1="{gripper_tcp}"
+                 case_2="{postgrasp_frame}"
+                 variable="{postgrasp_frame}">
+          <MoveGraspLin object_id="{object_id}"
+                        pick_allowed_touch_objects="{allowed_touch_links}"
+                        end_effector_link="{gripper_tcp}"
+                        pick_frame_id="{gripper_tcp}"
+                        pick_position_xyz="[0.0, 0.0, -0.1]"
+                        pick_rotation_quat="[0.0, 0.0, 0.0, 1.0]"
+                        planning_group="{pg_arm}"
+                        controller_names=""
+                        velocity_scaling_factor="1.0"
+                        use_joint_constraint="False"
+                        joint_names=""
+                        goal_tolerances="[0.05, 0.05, 0.05, 0.05, 0.05, 0.05]"
+                        constraint_tolerances_above=""
+                        constraint_tolerances_below=""
+                        acceleration_scaling_factor="0.01"
+                        blend_radius="0.0"
+                        add_to_blending_queue="False"/>
+          <MoveGraspLin object_id="{object_id}"
+                        pick_allowed_touch_objects="{allowed_touch_links}"
+                        end_effector_link="{gripper_tcp}"
+                        pick_frame_id="{postgrasp_frame}"
+                        pick_position_xyz="[0.0, 0.0, 0.0]"
+                        pick_rotation_quat="[0.0, 0.0, 0.0, 1.0]"
+                        planning_group="{pg_arm}"
+                        controller_names=""
+                        velocity_scaling_factor="1.0"
+                        use_joint_constraint="False"
+                        joint_names=""
+                        goal_tolerances="[0.05, 0.05, 0.05, 0.05, 0.05, 0.05]"
+                        constraint_tolerances_above=""
+                        constraint_tolerances_below=""
+                        acceleration_scaling_factor="0.01"
+                        blend_radius="0.0"
+                        add_to_blending_queue="False"/>
+          <ReachPreGraspPtp object_id="{object_id}"
+                            end_effector_link="{gripper_tcp}"
+                            pick_frame_id="{gripper_tcp}"
+                            pick_position_xyz="[0.0, 0.0, 0.0]"
+                            pick_rotation_quat="[0.0, 0.0, 0.0, 1.0]"
+                            pick_approach_direction="[0.0, 0.0, -1.0]"
+                            pick_approach_distance="0.1"
+                            planning_group="{pg_arm}"
+                            controller_names=""
+                            velocity_scaling_factor="1.0"
+                            use_joint_constraint="false"
+                            joint_names=""
+                            goal_tolerances="[0.05, 0.05, 0.05, 0.05, 0.05, 0.05]"
+                            constraint_tolerances_above=""
+                            constraint_tolerances_below=""
+                            acceleration_scaling_factor="1.0"
+                            blend_radius="0.0"
+                            add_to_blending_queue="False"/>
+        </Switch2>
+      </RetryUntilSuccessful>
+    </Sequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="PickingSequence">
+    <Sequence>
+      <ReachPreGraspOmpl object_id="{object_id}"
+                         end_effector_link="{gripper_tcp}"
+                         pick_frame_id="{pregrasp_frame}"
+                         pick_position_xyz="[0.0, 0.0, 0.0]"
+                         pick_rotation_quat="[0.0, 0.0, 0.0, 1.0]"
+                         pick_approach_direction="[0.0, 0.0, 0.0]"
+                         pick_approach_distance="0.1"
+                         planning_group="{pg_arm}"
+                         controller_names=""
+                         velocity_scaling_factor="1.0"
+                         use_joint_constraint="False"
+                         use_joint_target="False"
+                         joint_names=""
+                         joint_states=""
+                         goal_tolerances="[0.02, 0.02, 0.02, 0.05, 0.05, 0.05]"
+                         constraint_tolerances_above=""
+                         constraint_tolerances_below=""
+                         acceleration_scaling_factor="1.0"/>
+      <MoveGraspLin object_id="{object_id}"
+                    pick_allowed_touch_objects="{allowed_touch_links}"
+                    end_effector_link="{gripper_tcp}"
+                    pick_frame_id="{pick_frame_id}"
+                    pick_position_xyz="[0.0, 0.0, 0.0]"
+                    pick_rotation_quat="[0.0, 0.0, 0.0, 1.0]"
+                    planning_group="{pg_arm}"
+                    controller_names=""
+                    velocity_scaling_factor="0.05"
+                    use_joint_constraint="False"
+                    joint_names=""
+                    goal_tolerances="[0.01, 0.01, 0.01, 0.05, 0.05, 0.5]"
+                    constraint_tolerances_above=""
+                    constraint_tolerances_below=""
+                    acceleration_scaling_factor="0.01"
+                    blend_radius="0.0"
+                    add_to_blending_queue="False"/>
+    </Sequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="PlacingSequence">
+    <Sequence>
+      <ReachPreGraspOmpl object_id="{object_id}"
+                         end_effector_link="{gripper_tcp}"
+                         pick_frame_id="{preplace_frame}"
+                         pick_position_xyz="[0.0, 0.0, 0.0]"
+                         pick_rotation_quat="[0.0, 0.0, 0.0, 1.0]"
+                         pick_approach_direction="[0.0, 0.0, 0.0]"
+                         pick_approach_distance="0.1"
+                         planning_group="{pg_arm}"
+                         controller_names=""
+                         velocity_scaling_factor="1.0"
+                         use_joint_constraint="False"
+                         use_joint_target="False"
+                         joint_names=""
+                         joint_states=""
+                         goal_tolerances="[0.02, 0.02, 0.02, 0.05, 0.05, 0.05]"
+                         constraint_tolerances_above=""
+                         constraint_tolerances_below=""
+                         acceleration_scaling_factor="1.0"/>
+      <MoveGraspLin object_id="{object_id}"
+                    pick_allowed_touch_objects="{allowed_touch_links}"
+                    end_effector_link="{gripper_tcp}"
+                    pick_frame_id="{place_frame_id}"
+                    pick_position_xyz="[0.0, 0.0, 0.0]"
+                    pick_rotation_quat="[0.0, 0.0, 0.0, 1.0]"
+                    planning_group="{pg_arm}"
+                    controller_names=""
+                    velocity_scaling_factor="0.05"
+                    use_joint_constraint="False"
+                    joint_names=""
+                    goal_tolerances="[0.01, 0.01, 0.01, 0.05, 0.05, 0.5]"
+                    constraint_tolerances_above=""
+                    constraint_tolerances_below=""
+                    acceleration_scaling_factor="0.01"
+                    blend_radius="0.0"
+                    add_to_blending_queue="False"/>
+    </Sequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="SpawnObjects">
+    <Sequence>
+      <Fallback>
+        <IsFrameAvailableSrv service_name="/is_frame_available"
+                             frame="part_1/pick_position"/>
+        <RetryUntilSuccessful num_attempts="5">
+          <Sequence>
+            <LoadWorkspaceService service_name="/load_workspace"
+                                  file_path="/home/oguz/sfb_jazzy_msc/src/sfb_qa_cell_configuration/workspace_definitions/optimized_locations.yaml"/>
+            <RetryUntilSuccessful num_attempts="5">
+              <Sequence>
+                <Delay delay_msec="500">
+                  <IsFrameAvailableSrv service_name="/is_frame_available"
+                                       frame="part_1/pick_position"/>
+                </Delay>
+              </Sequence>
+            </RetryUntilSuccessful>
+          </Sequence>
+        </RetryUntilSuccessful>
+      </Fallback>
+    </Sequence>
+  </BehaviorTree>
+
+  <!-- Description of Node Models (used by Groot) -->
+  <TreeNodesModel>
+    <Action ID="Grasp"
+            editable="true">
+      <input_port name="object_id"/>
+      <input_port name="end_effector_link"/>
+      <input_port name="gripper_cmd_action_name"/>
+      <input_port name="pick_allowed_touch_objects"/>
+      <input_port name="joint_states"/>
+      <input_port name="disable_scene_handling"/>
+    </Action>
+    <Action ID="IsFrameAvailableSrv"
+            editable="true">
+      <input_port name="service_name"/>
+      <input_port name="frame"/>
+    </Action>
+    <Action ID="LoadWorkspaceService"
+            editable="true">
+      <input_port name="service_name"/>
+      <input_port name="file_path"/>
+    </Action>
+    <Action ID="MoveGraspLin"
+            editable="true">
+      <input_port name="object_id"/>
+      <input_port name="pick_allowed_touch_objects"/>
+      <input_port name="end_effector_link"/>
+      <input_port name="pick_frame_id"/>
+      <input_port name="pick_position_xyz"/>
+      <input_port name="pick_rotation_quat"/>
+      <input_port name="planning_group"/>
+      <input_port name="controller_names"/>
+      <input_port name="velocity_scaling_factor"/>
+      <input_port name="use_joint_constraint"/>
+      <input_port name="joint_names"/>
+      <input_port name="goal_tolerances"/>
+      <input_port name="constraint_tolerances_above"/>
+      <input_port name="constraint_tolerances_below"/>
+      <input_port name="acceleration_scaling_factor"/>
+      <input_port name="blend_radius"/>
+      <input_port name="add_to_blending_queue"/>
+    </Action>
+    <Action ID="ReachPreGraspOmpl"
+            editable="true">
+      <input_port name="object_id"/>
+      <input_port name="end_effector_link"/>
+      <input_port name="pick_frame_id"/>
+      <input_port name="pick_position_xyz"/>
+      <input_port name="pick_rotation_quat"/>
+      <input_port name="pick_approach_direction"/>
+      <input_port name="pick_approach_distance"/>
+      <input_port name="planning_group"/>
+      <input_port name="controller_names"/>
+      <input_port name="velocity_scaling_factor"/>
+      <input_port name="use_joint_constraint"/>
+      <input_port name="use_joint_target"/>
+      <input_port name="joint_names"/>
+      <input_port name="joint_states"/>
+      <input_port name="goal_tolerances"/>
+      <input_port name="constraint_tolerances_above"/>
+      <input_port name="constraint_tolerances_below"/>
+      <input_port name="acceleration_scaling_factor"/>
+    </Action>
+    <Action ID="ReachPreGraspPtp"
+            editable="true">
+      <input_port name="object_id"/>
+      <input_port name="end_effector_link"/>
+      <input_port name="pick_frame_id"/>
+      <input_port name="pick_position_xyz"/>
+      <input_port name="pick_rotation_quat"/>
+      <input_port name="pick_approach_direction"/>
+      <input_port name="pick_approach_distance"/>
+      <input_port name="planning_group"/>
+      <input_port name="controller_names"/>
+      <input_port name="velocity_scaling_factor"/>
+      <input_port name="use_joint_constraint"/>
+      <input_port name="joint_names"/>
+      <input_port name="goal_tolerances"/>
+      <input_port name="constraint_tolerances_above"/>
+      <input_port name="constraint_tolerances_below"/>
+      <input_port name="acceleration_scaling_factor"/>
+      <input_port name="blend_radius"/>
+      <input_port name="add_to_blending_queue"/>
+    </Action>
+    <Action ID="ReadCurrentJointState"
+            editable="true">
+      <input_port name="joint_names_filter"/>
+      <input_port name="joint_names"/>
+      <input_port name="joint_positions"/>
+    </Action>
+    <Action ID="Release"
+            editable="true">
+      <input_port name="object_id"/>
+      <input_port name="gripper_cmd_action_name"/>
+      <input_port name="place_frame_id"/>
+      <input_port name="parent_object_id_after_release"/>
+      <input_port name="joint_states"/>
+      <input_port name="disable_scene_handling"/>
+    </Action>
+  </TreeNodesModel>
+
+</root>
